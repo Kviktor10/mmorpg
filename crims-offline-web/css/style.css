@@ -513,8 +513,9 @@ a{color:var(--gold-soft);}
 
 /* ---------------------------- DESKTOP (navegador no PC) ---------------------------- */
 @media (min-width:900px){
+  html,body{height:auto;min-height:100%;}
   body{
-    display:flex;justify-content:center;
+    display:flex;justify-content:center;align-items:flex-start;
     padding:28px 20px;
   }
   #app{
@@ -524,7 +525,6 @@ a{color:var(--gold-soft);}
     border:1px solid var(--border);
     border-radius:var(--radius-lg);
     box-shadow:var(--shadow-pop);
-    overflow:hidden;
   }
   .boot-screen{min-height:calc(100vh - 56px);border-radius:var(--radius-lg);}
   .boot-card{max-width:460px;padding:38px 34px;}
@@ -537,7 +537,7 @@ a{color:var(--gold-soft);}
     align-items:start;
     min-height:100%;
   }
-  .app-header{grid-area:header;}
+  .app-header{grid-area:header;border-top-right-radius:var(--radius-lg);}
   .screen-content{grid-area:main;padding:22px 26px 36px;max-width:980px;}
 
   /* nav vira uma barra lateral fixa com o logo no topo */
@@ -551,6 +551,7 @@ a{color:var(--gold-soft);}
     gap:4px;
     padding:20px 12px;
     border-top:none;border-right:1px solid var(--border);
+    border-top-left-radius:var(--radius-lg);
     background:linear-gradient(180deg, var(--bg-2), var(--bg-1));
   }
   .bottom-nav::before{
