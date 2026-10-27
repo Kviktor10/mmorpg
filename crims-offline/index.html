@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<title>CITY OF CRIMS — Vida de Crime Offline</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕵️</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===================== TELA DE BOAS-VINDAS / CRIAÇÃO DE PERSONAGEM ===================== -->
+  <section id="screen-boot" class="boot-screen">
+    <div class="boot-card">
+      <div class="boot-logo">🕶️</div>
+      <h1>CITY OF <span>CRIMS</span></h1>
+      <p class="boot-sub">Construa seu império criminal. Suba de nível, cometa crimes, lute por respeito e domine as ruas — tudo offline, no seu navegador.</p>
+
+      <div id="boot-new" class="boot-form">
+        <label>Nome do seu personagem</label>
+        <input id="input-nome" type="text" maxlength="16" placeholder="Ex: Tony Bahia">
+        <label>Escolha seu avatar</label>
+        <div id="avatar-picker" class="avatar-picker"></div>
+        <button id="btn-foto-boot" type="button" class="btn btn-ghost btn-block" style="margin-top:4px;">📷 Ou usar uma foto (opcional)</button>
+        <input type="file" id="input-foto-boot" accept="image/*" class="hidden">
+        <label>Idade</label>
+        <input id="input-idade" type="number" min="18" max="90" value="25">
+        <button id="btn-start-game" class="btn btn-primary btn-block">Começar vida de crime</button>
+      </div>
+
+      <button id="btn-continue-game" class="btn btn-ghost btn-block hidden">Continuar jogo salvo</button>
+      <button id="btn-reset-game" class="btn btn-danger-ghost btn-block hidden">Apagar save e recomeçar</button>
+    </div>
+  </section>
+
+  <!-- ===================== APP PRINCIPAL ===================== -->
+  <div id="main-app" class="hidden">
+
+    <!-- Header fixo -->
+    <header id="app-header" class="app-header">
+      <div class="header-top">
+        <div class="player-id">
+          <span id="player-avatar" class="player-avatar">🕶️</span>
+          <div class="player-id-text">
+            <strong id="player-name">—</strong>
+            <small id="player-title">—</small>
+          </div>
+        </div>
+        <div class="header-wallet">
+          <div class="wallet-chip"><span>💵</span><strong id="stat-dinheiro">0</strong></div>
+          <div class="wallet-chip"><span>🏦</span><strong id="stat-banco">0</strong></div>
+        </div>
+      </div>
+      <div class="header-bars">
+        <div class="bar-group">
+          <div class="bar-label"><span>❤️ Vida</span><span id="label-vida">0/0</span></div>
+          <div class="bar-track"><div id="bar-vida" class="bar-fill bar-vida"></div></div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-label"><span>⚡ Energia</span><span id="label-energia">0/0</span></div>
+          <div class="bar-track"><div id="bar-energia" class="bar-fill bar-energia"></div></div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-label"><span>🔋 Stamina</span><span id="label-stamina">0/0</span></div>
+          <div class="bar-track"><div id="bar-stamina" class="bar-fill bar-stamina"></div></div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-label"><span>⭐ Nível <span id="label-nivel">1</span></span><span id="label-xp">0/0</span></div>
+          <div class="bar-track"><div id="bar-xp" class="bar-fill bar-xp"></div></div>
+        </div>
+      </div>
+      <div id="status-banner" class="status-banner hidden"></div>
+    </header>
+
+    <!-- Conteúdo dinâmico das telas -->
+    <main id="screen-content" class="screen-content"></main>
+
+    <!-- Navegação inferior -->
+    <nav id="bottom-nav" class="bottom-nav">
+      <button class="nav-btn active" data-screen="dashboard"><span>🏠</span><small>Início</small></button>
+      <button class="nav-btn" data-screen="crimes"><span>🔫</span><small>Crimes</small></button>
+      <button class="nav-btn" data-screen="combate"><span>🥊</span><small>Combate</small></button>
+      <button class="nav-btn" data-screen="academia"><span>💪</span><small>Academia</small></button>
+      <button class="nav-btn" data-screen="negocios"><span>🏭</span><small>Negócios</small></button>
+      <button class="nav-btn" data-screen="loja"><span>🛒</span><small>Loja</small></button>
+      <button class="nav-btn" data-screen="perfil"><span>👤</span><small>Perfil</small></button>
+    </nav>
+  </div>
+
+  <!-- Modal genérico -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div id="modal-box" class="modal-box"></div>
+  </div>
+
+  <!-- Toasts -->
+  <div id="toast-container" class="toast-container"></div>
+</div>
+
+<!-- ===================== SCRIPTS (ordem de dependência) ===================== -->
+<script src="js/01-storage.js"></script>
+<script src="js/02-eventbus.js"></script>
+<script src="js/03-models.js"></script>
+<script src="js/04-data.js"></script>
+<script src="js/05-factories.js"></script>
+<script src="js/06-services.js"></script>
+<script src="js/06b-expansion-services.js"></script>
+<script src="js/07-gamestate.js"></script>
+<script src="js/08-ui.js"></script>
+<script src="js/09-main.js"></script>
+</body>
+</html>
