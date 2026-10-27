@@ -209,14 +209,24 @@
   class LojaService {
     constructor(itemFactory) { this._itemFactory = itemFactory; }
 
-    comprar(player, itemId) {
+    comprar(player, itemId, quantidade = 1) {
       const def = this._itemFactory.listarTodos().find((d) => d.id === itemId);
       if (!def) return { sucesso: false, mensagem: 'Item inexistente.' };
-      if (player.dinheiro < def.preco) return { sucesso: false, mensagem: 'Dinheiro insuficiente.' };
-      player.dinheiro -= def.preco;
-      const item = this._itemFactory.criar(itemId);
-      player.adicionarItem(item);
-      const resultado = { sucesso: true, item, mensagem: `Você comprou "${def.nome}".` };
+      const qtd = Math.max(1, Math.min(20, Math.floor(Number(quantidade) || 1)));
+      const custoTotal = def.preco * qtd;
+      if (player.dinheiro < custoTotal) return { sucesso: false, mensagem: `Dinheiro insuficiente. São necessários R$ ${custoTotal} para ${qtd}x.` };
+      player.dinheiro -= custoTotal;
+      let ultimoItem = null;
+      for (let i = 0; i < qtd; i++) {
+        ultimoItem = this._itemFactory.criar(itemId);
+        player.adicionarItem(ultimoItem);
+      }
+      const resultado = {
+        sucesso: true,
+        item: ultimoItem,
+        quantidade: qtd,
+        mensagem: qtd > 1 ? `Você comprou ${qtd}x "${def.nome}".` : `Você comprou "${def.nome}".`
+      };
       EventBus.emit(Events.SHOP_PURCHASE, { player, resultado });
       return resultado;
     }

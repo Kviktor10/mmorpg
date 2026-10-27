@@ -142,6 +142,21 @@ prisão, equipamento, dinheiro) e gera recomendações contextuais — a mesma
 técnica usada em NPCs e assistentes de jogos reais antes de redes neurais,
 garantindo que o recurso funcione 100% offline, sem custo e sem APIs pagas.
 
+## 🖥️ Desktop e personalização de ícones
+
+- O layout agora é **responsivo**: continua mobile-first no celular, mas em
+  telas a partir de ~900px (navegador no PC) a navegação inferior vira uma
+  **barra lateral fixa**, o conteúdo ganha grades com mais colunas e o app é
+  exibido como um painel centralizado com cantos arredondados — sem precisar
+  de instalação, é só abrir o `index.html` no navegador do computador.
+- Em **Perfil → 🎨 Ícones** dá para trocar qualquer ícone do jogo (crimes,
+  itens da loja, drogas, peças, negócios, profissões e atributos da academia)
+  por uma **imagem PNG/JPG sua**: clique em 📤 no ícone desejado, escolha o
+  arquivo e ele é automaticamente recortado/reduzido antes de ser salvo. Um
+  botão ↺ restaura o emoji padrão individualmente, e outro restaura tudo de
+  uma vez. As imagens ficam salvas só neste navegador (localStorage),
+  separadas do save da partida — trocar de ícone não afeta seu progresso.
+
 ## 📱 Design
 
 Interface mobile-first, tema escuro elegante com acentos em dourado/vermelho

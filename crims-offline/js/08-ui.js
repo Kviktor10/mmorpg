@@ -238,7 +238,7 @@
       }
       this.$['player-name'].textContent = `${p.nome}${p.idade ? ' • ' + p.idade + ' anos' : ''}`;
       const profDef = p.profissao ? Services.profissaoService.obter(p.profissao) : null;
-      this.$['player-title'].textContent = GameState.obterTitulo() + (profDef ? ` • ${profDef.icone} ${profDef.nome}` : '');
+      this.$['player-title'].innerHTML = GameState.obterTitulo() + (profDef ? ` • ${Game.Icons.inlineHtml('profissao', profDef)} ${profDef.nome}` : '');
       this.$['stat-dinheiro'].textContent = fmtMoney(p.dinheiro);
       this.$['stat-banco'].textContent = fmtMoney(p.banco);
 
@@ -420,7 +420,7 @@
       const p = GameState.player;
       const itens = CRIMES.map((c) => `
         <div class="action-item">
-          <div class="action-icon">${c.icone}</div>
+          <div class="action-icon">${Game.Icons.boxHtml('crime', c)}</div>
           <div class="action-info">
             <strong>${c.nome}</strong>
             <div class="action-meta">
@@ -522,7 +522,7 @@
       const custo = Services.treinoService.custoEnergia();
       const itens = Object.entries(atrs).map(([key, def]) => `
         <div class="action-item">
-          <div class="action-icon">${def.icone}</div>
+          <div class="action-icon">${Game.Icons.boxHtml('atributo', { id: key, icone: def.icone, nome: def.label })}</div>
           <div class="action-info">
             <strong>${def.label}</strong>
             <div class="action-meta"><span class="chip">Atual: ${p[key]}</span><span class="chip">⚡ ${custo}</span></div>
@@ -578,7 +578,7 @@
         const precoVendaFabrica = Math.round((p.propriedades[def.id] && p.propriedades[def.id].custoCompra || def.custoBase) * 3);
         return `
           <div class="action-item">
-            <div class="action-icon">${def.icone}</div>
+            <div class="action-icon">${Game.Icons.boxHtml('negocio', def)}</div>
             <div class="action-info">
               <strong>${def.nome}</strong>
               <div class="action-meta">
@@ -632,9 +632,10 @@
         const precoCompra = Exp.preco(droga.id, 'compra');
         const possuiBoate = !!p.propriedades.boate;
         const possuiPonto = pontos.length > 0;
+        const maxQtd = Math.max(50, compradas, produzidas, boate, ponto);
         return `
           <div class="action-item" style="align-items:flex-start;flex-wrap:wrap;">
-            <div class="action-icon">${droga.icone}</div>
+            <div class="action-icon">${Game.Icons.boxHtml('droga', droga)}</div>
             <div class="action-info" style="min-width:145px;">
               <strong>${droga.nome}</strong>
               <div class="action-meta">
@@ -644,19 +645,21 @@
                 <span class="chip">Boate: ${boate}</span>
                 <span class="chip">Pontos: ${ponto}</span>
               </div>
+              ${this._qtyFieldHtml(`qty-droga-${droga.id}`, maxQtd, 5)}
+              <p style="font-size:10.5px;color:var(--text-2);margin:2px 0 0;">A quantidade acima vale para comprar, vender e transferir esta linha.</p>
             </div>
-            <button class="btn btn-primary btn-sm" data-comprar-droga="${droga.id}" ${p.dinheiro < precoCompra * 5 ? 'disabled' : ''}>Comprar 5 (${fmtMoney(precoCompra * 5)})</button>
+            <button class="btn btn-primary btn-sm" data-comprar-droga="${droga.id}" ${p.dinheiro < precoCompra ? 'disabled' : ''}>Comprar (${fmtMoney(precoCompra)}/un.)</button>
             <details style="width:100%;margin-top:4px;">
               <summary style="cursor:pointer;color:var(--gold-soft);font-size:12px;padding:7px 0;">Gerenciar estoques e vendas</summary>
               <div class="btn-row" style="flex-wrap:wrap;gap:6px;">
-                <button class="btn btn-danger btn-sm" data-vender-producao="${droga.id}" ${produzidas < 1 ? 'disabled' : ''}>Vender produção (${produzidas})</button>
+                <button class="btn btn-danger btn-sm" data-vender-producao="${droga.id}" ${produzidas < 1 ? 'disabled' : ''}>Vender produção (até ${produzidas})</button>
                 <button class="btn btn-secondary btn-sm" data-transferir-droga="${droga.id}" data-origem="compradas" data-destino="boate" ${!possuiBoate || compradas < 1 ? 'disabled' : ''}>Compradas → boate</button>
                 <button class="btn btn-secondary btn-sm" data-transferir-droga="${droga.id}" data-origem="produzidas" data-destino="boate" ${!possuiBoate || produzidas < 1 ? 'disabled' : ''}>Produção → boate</button>
                 <button class="btn btn-secondary btn-sm" data-transferir-droga="${droga.id}" data-origem="produzidas" data-destino="pontos" ${!possuiPonto || produzidas < 1 ? 'disabled' : ''}>Produção → ponto</button>
-                <button class="btn btn-danger-ghost btn-sm" data-vender-estoque="${droga.id}" data-destino="boate" ${!possuiBoate || boate < 1 ? 'disabled' : ''}>Vender na boate (${boate})</button>
-                <button class="btn btn-danger-ghost btn-sm" data-vender-estoque="${droga.id}" data-destino="pontos" ${!possuiPonto || ponto < 1 ? 'disabled' : ''}>Vender nos pontos (${ponto})</button>
+                <button class="btn btn-danger-ghost btn-sm" data-vender-estoque="${droga.id}" data-destino="boate" ${!possuiBoate || boate < 1 ? 'disabled' : ''}>Vender na boate (até ${boate})</button>
+                <button class="btn btn-danger-ghost btn-sm" data-vender-estoque="${droga.id}" data-destino="pontos" ${!possuiPonto || ponto < 1 ? 'disabled' : ''}>Vender nos pontos (até ${ponto})</button>
               </div>
-              <p style="font-size:11px;color:var(--text-2);margin:7px 0 0;">Cada transferência move até 5 unidades. O estoque comprado permanece separado da produção das fábricas até ser transferido.</p>
+              <p style="font-size:11px;color:var(--text-2);margin:7px 0 0;">Cada ação usa a quantidade definida no campo "Qtd." acima (ajustada automaticamente ao estoque disponível). O estoque comprado permanece separado da produção das fábricas até ser transferido.</p>
             </details>
           </div>`;
       }).join('');
@@ -666,14 +669,15 @@
       const pecasHtml = PECAS.map((peca) => {
         const estoque = Math.floor(p.estoquePecas[peca.id] || 0);
         const precoRevenda = Exp.precos[`peca_${peca.id}`] ? Exp.precos[`peca_${peca.id}`].venda : peca.precoVendaBase;
-        return `<div class="action-item">
-          <div class="action-icon">${peca.icone}</div>
+        return `<div class="action-item" style="flex-wrap:wrap;">
+          <div class="action-icon">${Game.Icons.boxHtml('peca', peca)}</div>
           <div class="action-info"><strong>${peca.nome}</strong>
             <div class="action-meta"><span class="chip">Estoque: ${estoque}</span><span class="chip">Compra: ${fmtMoney(peca.precoCompra)}</span><span class="chip">Revenda: ${fmtMoney(precoRevenda)}</span></div>
+            ${this._qtyFieldHtml(`qty-peca-${peca.id}`, Math.max(20, estoque), 5)}
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;">
             <button class="btn btn-secondary btn-sm" data-comprar-peca="${peca.id}" ${!possuiGaragem || p.dinheiro < peca.precoCompra ? 'disabled' : ''}>Comprar</button>
-            <button class="btn btn-danger btn-sm" data-vender-peca="${peca.id}" ${!possuiGaragem || estoque < 1 ? 'disabled' : ''}>Revender 1</button>
+            <button class="btn btn-danger btn-sm" data-vender-peca="${peca.id}" ${!possuiGaragem || estoque < 1 ? 'disabled' : ''}>Revender</button>
           </div>
         </div>`;
       }).join('');
@@ -760,19 +764,23 @@
       });
 
       this.$['screen-content'].querySelectorAll('[data-comprar-droga]').forEach((btn) => btn.addEventListener('click', () => {
-        const r = Exp.comprarDroga(p, btn.dataset.comprarDroga, 5);
+        const qtd = this._qtyValue(`qty-droga-${btn.dataset.comprarDroga}`, 50);
+        const r = Exp.comprarDroga(p, btn.dataset.comprarDroga, qtd);
         this.toast(r.mensagem, r.sucesso ? 'success' : 'error'); GameState.salvar(); this.refreshHeader(); this.renderNegocios();
       }));
       this.$['screen-content'].querySelectorAll('[data-vender-producao]').forEach((btn) => btn.addEventListener('click', () => {
-        const r = Exp.venderProducao(p, btn.dataset.venderProducao);
+        const qtd = this._qtyValue(`qty-droga-${btn.dataset.venderProducao}`, 9999);
+        const r = Exp.venderProducao(p, btn.dataset.venderProducao, qtd);
         this.toast(r.mensagem, r.sucesso ? 'success' : 'error'); GameState.salvar(); this.refreshHeader(); this.renderNegocios();
       }));
       this.$['screen-content'].querySelectorAll('[data-transferir-droga]').forEach((btn) => btn.addEventListener('click', () => {
-        const r = Exp.transferirEstoque(p, btn.dataset.transferirDroga, 5, btn.dataset.origem, btn.dataset.destino);
+        const qtd = this._qtyValue(`qty-droga-${btn.dataset.transferirDroga}`, 9999);
+        const r = Exp.transferirEstoque(p, btn.dataset.transferirDroga, qtd, btn.dataset.origem, btn.dataset.destino);
         this.toast(r.mensagem, r.sucesso ? 'success' : 'error'); GameState.salvar(); this.refreshHeader(); this.renderNegocios();
       }));
       this.$['screen-content'].querySelectorAll('[data-vender-estoque]').forEach((btn) => btn.addEventListener('click', () => {
-        const r = Exp.venderEstoqueEstabelecimento(p, btn.dataset.venderEstoque, btn.dataset.destino);
+        const qtd = this._qtyValue(`qty-droga-${btn.dataset.venderEstoque}`, 9999);
+        const r = Exp.venderEstoqueEstabelecimento(p, btn.dataset.venderEstoque, btn.dataset.destino, qtd);
         this.toast(r.mensagem, r.sucesso ? 'success' : 'error'); GameState.salvar(); this.refreshHeader(); this.renderNegocios();
       }));
       this.$['screen-content'].querySelectorAll('[data-vender-fabrica]').forEach((btn) => btn.addEventListener('click', () => {
@@ -780,13 +788,16 @@
         this.toast(r.mensagem, r.sucesso ? 'success' : 'error'); GameState.salvar(); this.refreshHeader(); this.renderNegocios();
       }));
       this.$['screen-content'].querySelectorAll('[data-comprar-peca]').forEach((btn) => btn.addEventListener('click', () => {
-        const r = Exp.comprarPeca(p, btn.dataset.comprarPeca, 1);
+        const qtd = this._qtyValue(`qty-peca-${btn.dataset.comprarPeca}`, 20);
+        const r = Exp.comprarPeca(p, btn.dataset.comprarPeca, qtd);
         this.toast(r.mensagem, r.sucesso ? 'success' : 'error'); GameState.salvar(); this.refreshHeader(); this.renderNegocios();
       }));
       this.$['screen-content'].querySelectorAll('[data-vender-peca]').forEach((btn) => btn.addEventListener('click', () => {
-        const r = Exp.venderPeca(p, btn.dataset.venderPeca, 1);
+        const qtd = this._qtyValue(`qty-peca-${btn.dataset.venderPeca}`, 20);
+        const r = Exp.venderPeca(p, btn.dataset.venderPeca, qtd);
         this.toast(r.mensagem, r.sucesso ? 'success' : 'error'); GameState.salvar(); this.refreshHeader(); this.renderNegocios();
       }));
+      this._wireQtySteppers(this.$['screen-content']);
       this.$['screen-content'].querySelectorAll('[data-contratar-equipe]').forEach((btn) => btn.addEventListener('click', () => {
         const [local, categoria] = btn.dataset.contratarEquipe.split('|');
         const r = Exp.contratarEquipe(p, local, categoria);
@@ -855,13 +866,14 @@
 
       const itensDoTipo = ITENS.filter((i) => i.tipo === this.lojaTabAtiva);
       const lista = itensDoTipo.map((def) => `
-        <div class="action-item">
-          <div class="action-icon">${def.icone}</div>
+        <div class="action-item" style="flex-wrap:wrap;">
+          <div class="action-icon">${Game.Icons.boxHtml('item', def)}</div>
           <div class="action-info">
             <strong>${def.nome}</strong>
             <div class="action-meta"><span class="chip">${def.descricao}</span></div>
+            ${this._qtyFieldHtml(`qty-item-${def.id}`, 20, 1)}
           </div>
-          <button class="btn btn-primary btn-sm" data-comprar="${def.id}" ${p.dinheiro < def.preco ? 'disabled' : ''}>${fmtMoney(def.preco)}</button>
+          <button class="btn btn-primary btn-sm" data-comprar="${def.id}" ${p.dinheiro < def.preco ? 'disabled' : ''}>${fmtMoney(def.preco)} /un.</button>
         </div>
       `).join('');
 
@@ -876,13 +888,15 @@
       });
       this.$['screen-content'].querySelectorAll('[data-comprar]').forEach((btn) => {
         btn.addEventListener('click', () => {
-          const r = Services.lojaService.comprar(GameState.player, btn.dataset.comprar);
+          const qtd = this._qtyValue(`qty-item-${btn.dataset.comprar}`, 20);
+          const r = Services.lojaService.comprar(GameState.player, btn.dataset.comprar, qtd);
           GameState.salvar();
           this.refreshHeader();
           this.toast(r.mensagem, r.sucesso ? 'success' : 'error');
           this.renderLoja();
         });
       });
+      this._wireQtySteppers(this.$['screen-content']);
     }
 
     // ============================================================
@@ -893,7 +907,9 @@
         { id: 'status', label: 'Status' },
         { id: 'inventario', label: 'Inventário' },
         { id: 'equipamento', label: 'Equipado' },
-        { id: 'editar', label: 'Editar' }
+        { id: 'editar', label: 'Editar' },
+        { id: 'icones', label: '🎨 Ícones' },
+        { id: 'cheats', label: '🎮 Cheats' }
       ];
       const tabsHtml = tabs.map((t) => `<button class="tab-btn ${this.perfilTabAtiva === t.id ? 'active' : ''}" data-ptab="${t.id}">${t.label}</button>`).join('');
 
@@ -947,7 +963,7 @@
         }
         body.innerHTML = `<div class="inv-grid">${consumiveis.map((item) => `
           <div class="inv-item" data-uid="${item.uid}">
-            <div class="inv-icon">${item.icone}</div>
+            <div class="inv-icon">${Game.Icons.boxHtml('item', item)}</div>
             <div class="inv-name">${item.nome}</div>
           </div>`).join('')}</div>`;
         body.querySelectorAll('.inv-item').forEach((el) => {
@@ -955,13 +971,52 @@
         });
       } else if (this.perfilTabAtiva === 'editar') {
         this._renderEdicaoPerfil(body, p);
+      } else if (this.perfilTabAtiva === 'icones') {
+        this._renderPersonalizacaoIcones(body);
+      } else if (this.perfilTabAtiva === 'cheats') {
+        body.innerHTML = `
+          <div class="card cheat-card">
+            <div class="section-title">🎮 Central de códigos</div>
+            <p class="muted">Digite um código exatamente como aparece abaixo e pressione Ativar. Os benefícios são aplicados imediatamente e salvos na partida.</p>
+            <form id="cheat-form" class="cheat-form">
+              <label for="cheat-code">Código de trapaça</label>
+              <input id="cheat-code" name="cheat-code" type="text" maxlength="32" autocomplete="off" spellcheck="false" placeholder="Ex.: CRIMS100K" required>
+              <button class="btn btn-primary btn-block" type="submit">Ativar código</button>
+            </form>
+            <div class="cheat-list">
+              <div><code>CRIMS100K</code><span>Recebe R$ 100.000</span></div>
+              <div><code>SUBMUNDO</code><span>Recebe R$ 500.000</span></div>
+              <div><code>VIDAENERGIA</code><span>Restaura vida, energia e stamina</span></div>
+              <div><code>FORCA50</code><span>+50 de força</span></div>
+              <div><code>GENIO50</code><span>+50 de inteligência</span></div>
+              <div><code>VELOCIDADE50</code><span>+50 de velocidade</span></div>
+              <div><code>RESPEITO1000</code><span>+1.000 de respeito</span></div>
+              <div><code>NIVEL10</code><span>Avança para o nível 10, se estiver abaixo</span></div>
+              <div><code>CHEFAO</code><span>R$ 1.000.000 e +100 em cada atributo</span></div>
+            </div>
+          </div>`;
+        const form = body.querySelector('#cheat-form');
+        form.addEventListener('submit', (event) => {
+          event.preventDefault();
+          const input = body.querySelector('#cheat-code');
+          const code = input.value.trim().toUpperCase();
+          const result = this._ativarCheat(code, p);
+          this.toast(result.mensagem, result.sucesso ? 'success' : 'error');
+          if (result.sucesso) {
+            GameState.salvar();
+            this.refreshHeader();
+            this._renderPerfilBody();
+          } else {
+            input.select();
+          }
+        });
       } else {
         const equipaveis = p.inventario.filter((i) => i.isEquipavel);
         const slotsHtml = `
           <div class="card">
-            ${this._statRow('Arma', p.equipamento.arma ? `${p.equipamento.arma.icone} ${p.equipamento.arma.nome}` : '— vazio —')}
-            ${this._statRow('Proteção', p.equipamento.protecao ? `${p.equipamento.protecao.icone} ${p.equipamento.protecao.nome}` : '— vazio —')}
-            ${this._statRow('Veículo', p.equipamento.veiculo ? `${p.equipamento.veiculo.icone} ${p.equipamento.veiculo.nome}` : '— vazio —')}
+            ${this._statRow('Arma', p.equipamento.arma ? `${Game.Icons.inlineHtml('item', p.equipamento.arma)} ${p.equipamento.arma.nome}` : '— vazio —')}
+            ${this._statRow('Proteção', p.equipamento.protecao ? `${Game.Icons.inlineHtml('item', p.equipamento.protecao)} ${p.equipamento.protecao.nome}` : '— vazio —')}
+            ${this._statRow('Veículo', p.equipamento.veiculo ? `${Game.Icons.inlineHtml('item', p.equipamento.veiculo)} ${p.equipamento.veiculo.nome}` : '— vazio —')}
           </div>`;
         if (equipaveis.length === 0) {
           body.innerHTML = slotsHtml + `<div class="empty-state"><span class="es-icon">🧰</span>Você ainda não possui itens equipáveis.</div>`;
@@ -970,7 +1025,7 @@
         body.innerHTML = slotsHtml + `<div class="section-title">Seus itens</div><div class="inv-grid">${equipaveis.map((item) => `
           <div class="inv-item ${item.equipado ? 'equipped' : ''}" data-uid="${item.uid}">
             ${item.equipado ? '<span class="eq-badge">●</span>' : ''}
-            <div class="inv-icon">${item.icone}</div>
+            <div class="inv-icon">${Game.Icons.boxHtml('item', item)}</div>
             <div class="inv-name">${item.nome}</div>
           </div>`).join('')}</div>`;
         body.querySelectorAll('.inv-item').forEach((el) => {
@@ -979,7 +1034,110 @@
       }
     }
 
+    /** Aba "Ícones": personalize qualquer ícone do jogo com um PNG próprio. */
+    _renderPersonalizacaoIcones(body) {
+      const atrs = Services.treinoService.constructor.ATRIBUTOS;
+      const grupos = [
+        { titulo: 'Atributos (Academia)', cat: 'atributo', lista: Object.entries(atrs).map(([key, def]) => ({ id: key, icone: def.icone, nome: def.label })) },
+        { titulo: 'Crimes', cat: 'crime', lista: Game.Data.CRIMES },
+        { titulo: 'Loja — armas, proteção, veículos e consumo', cat: 'item', lista: Game.Data.ITENS },
+        { titulo: 'Drogas (mercado negro)', cat: 'droga', lista: Game.Data.DROGAS },
+        { titulo: 'Peças da garagem', cat: 'peca', lista: Game.Data.PECAS_GARAGEM },
+        { titulo: 'Negócios', cat: 'negocio', lista: Game.Data.PROPRIEDADES },
+        { titulo: 'Profissões', cat: 'profissao', lista: Game.Data.PROFISSOES }
+      ];
+
+      body.innerHTML = `
+        <div class="icon-personalizacao-top">
+          <p>Troque qualquer ícone do jogo por uma imagem PNG/JPG sua. A imagem é redimensionada automaticamente e fica salva só neste navegador — não afeta o progresso da partida.</p>
+        </div>
+        <button class="btn btn-ghost btn-block" id="btn-reset-icones" style="margin:10px 0 16px;">↺ Restaurar todos os ícones padrão</button>
+        ${grupos.map((g) => `
+          <div class="icon-cat-title">${g.titulo}</div>
+          <div class="icon-pick-grid">
+            ${g.lista.map((def) => {
+              const custom = Game.Icons.get(g.cat, def.id);
+              return `
+                <div class="icon-pick-item ${custom ? 'customized' : ''}" data-icon-cat="${g.cat}" data-icon-id="${def.id}">
+                  <div class="icon-pick-box">${Game.Icons.boxHtml(g.cat, def)}</div>
+                  <div class="icon-pick-name" title="${def.nome}">${def.nome}</div>
+                  <div class="icon-pick-actions">
+                    <button type="button" class="icon-pick-btn" data-icon-upload title="Carregar PNG">📤</button>
+                    ${custom ? '<button type="button" class="icon-pick-btn icon-pick-reset" data-icon-reset title="Restaurar emoji">↺</button>' : ''}
+                  </div>
+                  <input type="file" accept="image/*" class="hidden" data-icon-input>
+                </div>`;
+            }).join('')}
+          </div>
+        `).join('')}
+      `;
+
+      body.querySelectorAll('[data-icon-cat]').forEach((cardEl) => {
+        const cat = cardEl.dataset.iconCat;
+        const id = cardEl.dataset.iconId;
+        const fileInput = cardEl.querySelector('[data-icon-input]');
+        cardEl.querySelector('[data-icon-upload]').addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', async () => {
+          const file = fileInput.files && fileInput.files[0];
+          if (!file) return;
+          try {
+            await Game.Icons.setFromFile(cat, id, file);
+            this.toast('Ícone atualizado!', 'success');
+            this._renderPersonalizacaoIcones(body);
+            this.refreshHeader();
+          } catch (err) {
+            this.toast(err.message || 'Não foi possível usar essa imagem.', 'error');
+          }
+        });
+        const resetBtn = cardEl.querySelector('[data-icon-reset]');
+        if (resetBtn) {
+          resetBtn.addEventListener('click', () => {
+            Game.Icons.remove(cat, id);
+            this._renderPersonalizacaoIcones(body);
+            this.refreshHeader();
+          });
+        }
+      });
+
+      document.getElementById('btn-reset-icones').addEventListener('click', () => {
+        this.confirmar('Restaurar todos os ícones?', 'Todas as imagens personalizadas serão removidas e os emojis padrão voltarão.', () => {
+          Game.Icons.resetAll();
+          this._renderPersonalizacaoIcones(body);
+          this.refreshHeader();
+        });
+      });
+    }
+
     /** Aba "Editar" do Perfil: foto, nome, idade e profissão (com bônus). */
+    _ativarCheat(code, p) {
+      // Códigos de trapaça são intencionalmente locais e funcionam offline.
+      const cheats = {
+        CRIMS100K: () => { p.dinheiro += 100000; return 'Você recebeu R$ 100.000.'; },
+        SUBMUNDO: () => { p.dinheiro += 500000; return 'Você recebeu R$ 500.000.'; },
+        VIDAENERGIA: () => { p.vida = p.vidaMax; p.energia = p.energiaMax; p.stamina = p.staminaMax; return 'Vida, energia e stamina restauradas.'; },
+        FORCA50: () => { p.forca += 50; return 'Força aumentada em 50 pontos.'; },
+        GENIO50: () => { p.inteligencia += 50; return 'Inteligência aumentada em 50 pontos.'; },
+        VELOCIDADE50: () => { p.velocidade += 50; return 'Velocidade aumentada em 50 pontos.'; },
+        RESPEITO1000: () => { p.respeito += 1000; return 'Você recebeu 1.000 pontos de respeito.'; },
+        NIVEL10: () => {
+          if (p.nivel >= 10) return null;
+          p.nivel = 10; p.xp = 0; p.vidaMax += 8 * 9; p.energiaMax += 3 * 9;
+          p.vida = p.vidaMax; p.energia = p.energiaMax; p.staminaMax += 5 * 9; p.stamina = p.staminaMax;
+          return 'Nível ajustado para 10 e atributos vitais atualizados.';
+        },
+        CHEFAO: () => {
+          p.dinheiro += 1000000; p.forca += 100; p.inteligencia += 100; p.velocidade += 100; p.respeito += 5000;
+          p.vida = p.vidaMax; p.energia = p.energiaMax; p.stamina = p.staminaMax;
+          return 'Pacote CHEFÃO ativado: R$ 1.000.000, atributos reforçados e energia restaurada.';
+        }
+      };
+      if (!code) return { sucesso: false, mensagem: 'Digite um código primeiro.' };
+      if (!Object.prototype.hasOwnProperty.call(cheats, code)) return { sucesso: false, mensagem: 'Código inválido. Confira a lista e tente novamente.' };
+      const mensagem = cheats[code]();
+      if (!mensagem) return { sucesso: false, mensagem: 'Esse código não pode ser usado: você já está no nível 10 ou superior.' };
+      return { sucesso: true, mensagem: `Cheat ativado! ${mensagem}` };
+    }
+
     _renderEdicaoPerfil(body, p) {
       const Prof = Services.profissaoService;
       const avatarPreview = p.fotoUrl
@@ -988,7 +1146,7 @@
 
       const profissoesHtml = Prof.listar().map((def) => `
         <div class="prof-opt ${p.profissao === def.id ? 'selected' : ''}" data-prof="${def.id}">
-          <div class="prof-icon">${def.icone}</div>
+          <div class="prof-icon">${Game.Icons.boxHtml('profissao', def)}</div>
           <div class="prof-name">${def.nome}</div>
           <div class="prof-desc">${def.descricao}</div>
         </div>`).join('');
@@ -1123,6 +1281,43 @@
 
     _statRow(label, val) {
       return `<div class="stat-row"><span class="stat-name">${label}</span><span class="stat-val">${val}</span></div>`;
+    }
+
+    /** Campo "Quantidade" reutilizável (comprar/vender/transferir) com botões -/+. */
+    _qtyFieldHtml(id, max, value) {
+      const v = Math.max(1, Math.min(max, value));
+      return `
+        <div class="qty-field">
+          <label>Qtd.</label>
+          <div class="qty-stepper">
+            <button type="button" data-qty-step="-1">−</button>
+            <input type="number" class="qty-input" id="${id}" min="1" max="${max}" value="${v}">
+            <button type="button" data-qty-step="1">+</button>
+          </div>
+        </div>`;
+    }
+
+    /** Liga os botões -/+ de todos os campos de quantidade dentro de `root`. */
+    _wireQtySteppers(root) {
+      root.querySelectorAll('.qty-stepper').forEach((wrap) => {
+        const input = wrap.querySelector('.qty-input');
+        wrap.querySelectorAll('[data-qty-step]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const delta = parseInt(btn.dataset.qtyStep, 10);
+            const min = parseInt(input.min, 10) || 1;
+            const max = parseInt(input.max, 10) || 99;
+            const atual = parseInt(input.value, 10) || min;
+            input.value = Math.max(min, Math.min(max, atual + delta));
+          });
+        });
+      });
+    }
+
+    /** Lê o valor atual de um campo de quantidade pelo id, com limites de segurança. */
+    _qtyValue(id, max) {
+      const el = document.getElementById(id);
+      const v = el ? parseInt(el.value, 10) : 1;
+      return Math.max(1, Math.min(max, Number.isFinite(v) ? v : 1));
     }
 
     // ============================================================

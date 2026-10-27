@@ -92,22 +92,23 @@
       return { sucesso: true, quantidade: qtd, mensagem: `${qtd} un. de ${droga.nome} transferidas para ${destinoLabel}.` };
     }
 
-    venderEstoqueEstabelecimento(player, drogaId, destino = 'boate') {
+    venderEstoqueEstabelecimento(player, drogaId, destino = 'boate', quantidade = Infinity) {
       this._inicializarEstoques(player);
       const droga = DROGAS.find((d) => d.id === drogaId);
       if (!droga) return { sucesso: false, mensagem: 'Produto não encontrado.' };
       if (destino === 'boate' && !player.propriedades.boate) return { sucesso: false, mensagem: 'Você ainda não possui uma boate.' };
       if (destino === 'pontos' && player.pontosDrogas.length === 0) return { sucesso: false, mensagem: 'Você ainda não possui ponto de venda.' };
       const estoque = destino === 'boate' ? player.estoqueDrogasBoate : player.estoqueDrogasPontos;
-      const qtd = Math.floor(estoque[drogaId] || 0);
+      const disponivel = Math.floor(estoque[drogaId] || 0);
+      const qtd = Math.min(disponivel, Number.isFinite(quantidade) ? Math.max(0, Math.floor(quantidade)) : disponivel);
       if (qtd <= 0) return { sucesso: false, mensagem: `Não há ${droga.nome} nesse estoque.` };
       if (destino === 'pontos' && rand(1, 100) <= 10) {
-        estoque[drogaId] = 0;
+        estoque[drogaId] -= qtd;
         return { sucesso: false, batida: true, mensagem: `Batida policial no ponto: ${qtd} un. de ${droga.nome} foram confiscadas.` };
       }
       const multiplicador = destino === 'boate' ? 1.25 : 1.10;
       const valor = Math.round(qtd * this.preco(drogaId, 'venda') * multiplicador);
-      estoque[drogaId] = 0;
+      estoque[drogaId] -= qtd;
       player.dinheiro += valor;
       return { sucesso: true, quantidade: qtd, valor, mensagem: `Venda concluída: ${qtd} un. de ${droga.nome} renderam R$ ${valor}.` };
     }
